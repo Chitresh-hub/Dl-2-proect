@@ -1,0 +1,19 @@
+{
+  "available": true,
+  "source": "Saved executed notebook; held-out test split",
+  "metrics": {
+    "accuracy": 0.8786004252851344,
+    "balanced_accuracy": 0.5536989912474125,
+    "theft_precision": 0.20348837209302326,
+    "theft_recall": 0.1650943396226415,
+    "theft_f1": 0.18229166666666666,
+    "roc_auc": 0.5944535989701905,
+    "average_precision": 0.17083433374560708
+  },
+  "threshold": 0.11846431169375599,
+  "counts": {
+    "test_records": 5173,
+    "normal": 4749,
+    "theft_labelled": 424
+  }
+}

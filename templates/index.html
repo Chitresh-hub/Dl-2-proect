@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#081321">
+  <title>GridWatch | Electricity theft detection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#overview" aria-label="GridWatch home">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span>gridwatch<span class="brand-dot">.</span></span>
+      </a>
+      <div class="sidebar-label">WORKSPACE</div>
+      <nav class="side-nav">
+        <a class="nav-link active" href="#overview"><span class="nav-icon">◫</span>Overview</a>
+        <a class="nav-link" href="#evaluation"><span class="nav-icon">⌁</span>Evaluation</a>
+        <a class="nav-link" href="#test-model"><span class="nav-icon">⌘</span>Test the model</a>
+        <a class="nav-link" href="#model-info"><span class="nav-icon">ⓘ</span>Model information</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="sidebar-note-icon">✦</div>
+        <p>Predictions help prioritize reviews. They do not establish that theft occurred.</p>
+        <span>GAUSSIAN NAIVE BAYES</span>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="breadcrumb">Projects <span>/</span> Energy analytics <span>/</span> <strong>Electricity theft</strong></div>
+        <div class="topbar-right">
+          <span class="environment-tag"><span class="live-dot"></span> LOCAL DEMO</span>
+          <span class="avatar" aria-hidden="true">EW</span>
+        </div>
+      </header>
+
+      <div class="page-wrap">
+        <section class="page-heading" id="overview">
+          <div>
+            <div class="eyebrow"><span class="eyebrow-line"></span> MODEL MONITORING</div>
+            <h1>Electricity theft detection</h1>
+            <p class="subtitle">A transparent view of held-out model performance and customer reading predictions.</p>
+          </div>
+          <div class="model-status status-loading" id="modelStatus"><span class="status-dot"></span><span>Checking model…</span></div>
+        </section>
+
+        <div class="notice hidden" id="apiNotice" role="status"></div>
+        <section class="model-banner" id="modelBanner" aria-live="polite">
+          <div class="banner-icon">↗</div>
+          <div><strong id="bannerTitle">Loading saved model</strong><p id="bannerMessage">Connecting to the local Flask API.</p></div>
+          <span class="banner-tag" id="bannerTag">PLEASE WAIT</span>
+        </section>
+
+        <section class="section-block metrics-section" aria-labelledby="metricsTitle">
+          <div class="section-heading">
+            <div><div class="section-kicker">HELD-OUT TEST SET</div><h2 id="metricsTitle">Performance at a glance</h2></div>
+            <span class="section-caption" id="evaluationSplit">Evaluation results load from the saved notebook artifacts</span>
+          </div>
+          <div class="metric-grid" id="metricGrid">
+            <article class="metric-card" data-metric="accuracy"><div class="metric-top"><span>Accuracy</span><span class="metric-symbol blue">◎</span></div><div class="metric-value" id="metric-accuracy">{{ initial_metric_display.get('accuracy', {}).get('percent', '—') if initial_metrics_available else '—' }}</div><div class="metric-detail" id="detail-accuracy">{{ initial_metric_display.get('accuracy', {}).get('exact', 'Metrics unavailable') if initial_metrics_available else 'Metrics unavailable' }}</div><div class="metric-track"><span class="track-blue" id="bar-accuracy" style="width: {{ initial_metric_display.get('accuracy', {}).get('bar', '0%') if initial_metrics_available else '0%' }}"></span></div></article>
+            <article class="metric-card" data-metric="balanced_accuracy"><div class="metric-top"><span>Balanced accuracy</span><span class="metric-symbol violet">◈</span></div><div class="metric-value" id="metric-balanced_accuracy">{{ initial_metric_display.get('balanced_accuracy', {}).get('percent', '—') if initial_metrics_available else '—' }}</div><div class="metric-detail" id="detail-balanced_accuracy">{{ initial_metric_display.get('balanced_accuracy', {}).get('exact', 'Metrics unavailable') if initial_metrics_available else 'Metrics unavailable' }}</div><div class="metric-track"><span class="track-violet" id="bar-balanced_accuracy" style="width: {{ initial_metric_display.get('balanced_accuracy', {}).get('bar', '0%') if initial_metrics_available else '0%' }}"></span></div></article>
+            <article class="metric-card" data-metric="theft_precision"><div class="metric-top"><span>Theft precision</span><span class="metric-symbol amber">⌖</span></div><div class="metric-value" id="metric-theft_precision">{{ initial_metric_display.get('theft_precision', {}).get('percent', '—') if initial_metrics_available else '—' }}</div><div class="metric-detail" id="detail-theft_precision">{{ initial_metric_display.get('theft_precision', {}).get('exact', 'Metrics unavailable') if initial_metrics_available else 'Metrics unavailable' }}</div><div class="metric-track"><span class="track-amber" id="bar-theft_precision" style="width: {{ initial_metric_display.get('theft_precision', {}).get('bar', '0%') if initial_metrics_available else '0%' }}"></span></div></article>
+            <article class="metric-card" data-metric="theft_recall"><div class="metric-top"><span>Theft recall</span><span class="metric-symbol teal">↗</span></div><div class="metric-value" id="metric-theft_recall">{{ initial_metric_display.get('theft_recall', {}).get('percent', '—') if initial_metrics_available else '—' }}</div><div class="metric-detail" id="detail-theft_recall">{{ initial_metric_display.get('theft_recall', {}).get('exact', 'Metrics unavailable') if initial_metrics_available else 'Metrics unavailable' }}</div><div class="metric-track"><span class="track-teal" id="bar-theft_recall" style="width: {{ initial_metric_display.get('theft_recall', {}).get('bar', '0%') if initial_metrics_available else '0%' }}"></span></div></article>
+            <article class="metric-card" data-metric="theft_f1"><div class="metric-top"><span>Theft F1-score</span><span class="metric-symbol rose">◉</span></div><div class="metric-value" id="metric-theft_f1">{{ initial_metric_display.get('theft_f1', {}).get('percent', '—') if initial_metrics_available else '—' }}</div><div class="metric-detail" id="detail-theft_f1">{{ initial_metric_display.get('theft_f1', {}).get('exact', 'Metrics unavailable') if initial_metrics_available else 'Metrics unavailable' }}</div><div class="metric-track"><span class="track-rose" id="bar-theft_f1" style="width: {{ initial_metric_display.get('theft_f1', {}).get('bar', '0%') if initial_metrics_available else '0%' }}"></span></div></article>
+            <article class="metric-card" data-metric="roc_auc"><div class="metric-top"><span>ROC-AUC</span><span class="metric-symbol blue">⌁</span></div><div class="metric-value" id="metric-roc_auc">{{ initial_metric_display.get('roc_auc', {}).get('percent', '—') if initial_metrics_available else '—' }}</div><div class="metric-detail" id="detail-roc_auc">{{ initial_metric_display.get('roc_auc', {}).get('exact', 'Metrics unavailable') if initial_metrics_available else 'Metrics unavailable' }}</div><div class="metric-track"><span class="track-blue" id="bar-roc_auc" style="width: {{ initial_metric_display.get('roc_auc', {}).get('bar', '0%') if initial_metrics_available else '0%' }}"></span></div></article>
+            <article class="metric-card" data-metric="average_precision"><div class="metric-top"><span>Average precision</span><span class="metric-symbol violet">⌗</span></div><div class="metric-value" id="metric-average_precision">{{ initial_metric_display.get('average_precision', {}).get('percent', '—') if initial_metrics_available else '—' }}</div><div class="metric-detail" id="detail-average_precision">{{ initial_metric_display.get('average_precision', {}).get('exact', 'Metrics unavailable') if initial_metrics_available else 'Metrics unavailable' }}</div><div class="metric-track"><span class="track-violet" id="bar-average_precision" style="width: {{ initial_metric_display.get('average_precision', {}).get('bar', '0%') if initial_metrics_available else '0%' }}"></span></div></article>
+          </div>
+          <p class="metric-footnote"><span class="info-dot">i</span> Values are calculated on the notebook's held-out test split. The smaller class is theft-labelled, so accuracy alone can be misleading.</p>
+        </section>
+
+        <section class="section-block" id="evaluation" aria-labelledby="evaluationTitle">
+          <div class="section-heading">
+            <div><div class="section-kicker">MODEL EVALUATION</div><h2 id="evaluationTitle">How the model performed</h2></div>
+            <span class="section-caption">Actual labels compared with saved model outputs</span>
+          </div>
+          <div class="chart-grid">
+            <article class="panel chart-panel confusion-panel">
+              <div class="panel-heading"><div><h3>Confusion matrix</h3><p>Actual customer class against predicted class</p></div><span class="panel-index">01</span></div>
+              <div class="chart-box confusion-chart-box" id="confusionWrap"><canvas id="confusionChart" aria-label="Confusion matrix chart"></canvas></div>
+              <div class="matrix-summary hidden" id="matrixSummary"></div>
+              <div class="chart-unavailable hidden" id="confusionEmpty">Confusion matrix data was not exported from the notebook.</div>
+            </article>
+            <article class="panel chart-panel">
+              <div class="panel-heading"><div><h3>Metric comparison</h3><p>Threshold-based scores on the held-out test set</p></div><span class="panel-index">02</span></div>
+              <div class="chart-box"><canvas id="metricChart" aria-label="Metric comparison chart"></canvas></div>
+              <div class="chart-unavailable hidden" id="metricChartEmpty">Evaluation metrics are not available yet.</div>
+            </article>
+            <article class="panel chart-panel">
+              <div class="panel-heading"><div><h3>ROC curve</h3><p>True positive rate versus false positive rate</p></div><span class="panel-index">03</span></div>
+              <div class="chart-box"><canvas id="rocChart" aria-label="ROC curve chart"></canvas></div>
+              <div class="chart-unavailable hidden" id="rocEmpty">Real test-set ROC points were not exported. No sample curve is shown.</div>
+            </article>
+            <article class="panel chart-panel">
+              <div class="panel-heading"><div><h3>Precision–recall curve</h3><p>Precision across theft-labelled customer recall</p></div><span class="panel-index">04</span></div>
+              <div class="chart-box"><canvas id="prChart" aria-label="Precision-recall curve chart"></canvas></div>
+              <div class="chart-unavailable hidden" id="prEmpty">Real test-set precision–recall points were not exported. No sample curve is shown.</div>
+            </article>
+            <article class="panel chart-panel distribution-panel">
+              <div class="panel-heading"><div><h3>Test-set class distribution</h3><p>Ground-truth customer labels, not predictions</p></div><span class="panel-index">05</span></div>
+              <div class="distribution-layout">
+                <div class="distribution-chart"><canvas id="classChart" aria-label="Evaluation dataset class distribution"></canvas></div>
+                <div class="distribution-legend" id="classLegend"></div>
+              </div>
+              <div class="chart-unavailable hidden" id="classEmpty">Test-set class counts were not exported from the notebook.</div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section-block" id="test-model" aria-labelledby="testTitle">
+          <div class="section-heading">
+            <div><div class="section-kicker">INTERACTIVE DEMO</div><h2 id="testTitle">Test a customer profile</h2></div>
+            <span class="section-caption">Inputs use the same 26 daily columns as the notebook</span>
+          </div>
+          <div class="test-grid">
+            <article class="panel form-panel">
+              <div class="panel-heading"><div><h3>Manual readings</h3><p>Enter a non-negative daily energy reading for each date.</p></div><span class="option-number">A</span></div>
+              <div class="form-toolbar"><span class="field-count" id="readingCount">Loading reading schema…</span><button class="button button-quiet" type="button" id="sampleButton" title="Fills the saved training median for each day; this is a reference profile, not a real customer record">Use sample values <span aria-hidden="true">↗</span></button></div>
+              <form id="manualForm">
+                <div class="reading-fields" id="readingFields"></div>
+                <button class="button button-primary full-button" type="submit" id="predictButton" disabled><span>Run prediction</span><span aria-hidden="true">→</span></button>
+              </form>
+              <div class="prediction-result hidden" id="predictionResult" role="status"></div>
+              <div class="form-error hidden" id="manualError" role="alert"></div>
+              <p class="form-note"><span class="info-dot">i</span> A positive result is a model flag for review, not proof of electricity theft.</p>
+            </article>
+
+            <article class="panel form-panel csv-panel">
+              <div class="panel-heading"><div><h3>Batch CSV upload</h3><p>Score multiple customer rows in one request.</p></div><span class="option-number">B</span></div>
+              <div class="schema-callout"><span class="schema-icon">⇧</span><div><strong>Use the notebook's raw reading columns</strong><p>Include one column for each daily reading. Headers must match the dates shown on the left.</p></div></div>
+              <form id="csvForm" class="csv-form">
+                <label class="file-drop" for="csvFile"><span class="upload-icon">↑</span><strong id="fileName">Choose a CSV file</strong><span>CSV only · maximum 8 MB</span><input id="csvFile" type="file" accept=".csv,text/csv" required></label>
+                <button class="button button-primary full-button" type="submit" id="csvButton" disabled><span>Predict all rows</span><span aria-hidden="true">→</span></button>
+              </form>
+              <div class="form-error hidden" id="csvError" role="alert"></div>
+              <div class="csv-results hidden" id="csvResults">
+                <div class="result-summary" id="csvSummary"></div>
+                <div class="results-toolbar"><label class="search-box"><span>⌕</span><input id="resultSearch" type="search" placeholder="Search result rows"></label><button class="button button-quiet" id="downloadButton" type="button">Download CSV ↓</button></div>
+                <div class="table-wrap"><table><thead><tr><th>Record</th><th>Prediction</th><th>Theft score</th><th>Threshold</th></tr></thead><tbody id="resultRows"></tbody></table></div>
+                <div class="table-foot" id="tableFoot"></div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section-block" id="model-info" aria-labelledby="infoTitle">
+          <div class="section-heading">
+            <div><div class="section-kicker">ABOUT THE MODEL</div><h2 id="infoTitle">What is running behind the dashboard</h2></div>
+            <span class="section-caption">Saved pipeline · no retraining on submitted data</span>
+          </div>
+          <div class="info-grid">
+            <article class="panel model-summary-panel">
+              <div class="model-type-icon">GNB</div>
+              <div class="model-summary-copy"><div class="section-kicker">PRODUCTION CLASSIFIER</div><h3>Gaussian Naive Bayes</h3><p id="modelDescription">The model summarizes each customer's daily consumption history, scales the resulting features with the saved training scaler, and estimates the likelihood of the theft-labelled class.</p></div>
+              <div class="model-properties" id="modelProperties"></div>
+            </article>
+            <article class="panel feature-panel">
+              <div class="panel-heading"><div><h3>Features used for prediction</h3><p>Derived from the raw daily readings using the notebook pipeline</p></div><span class="panel-index">12 FEATURES</span></div>
+              <div class="feature-list" id="featureList"><span class="muted">Loading feature definitions…</span></div>
+            </article>
+          </div>
+          <div class="limitation-strip"><span class="limitation-icon">!</span><div><strong>Interpret results with care</strong><p>The dataset is imbalanced, and false positives can send normal customers for unnecessary review. Gaussian Naive Bayes also assumes features are conditionally independent and normally distributed. This model is a demonstration tool, not a basis for enforcement.</p></div></div>
+        </section>
+
+        <footer class="footer"><span>GRIDWATCH <span class="brand-dot">·</span> COLLEGE PROJECT DEMO</span><span>Powered by Flask and Gaussian Naive Bayes</span></footer>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
